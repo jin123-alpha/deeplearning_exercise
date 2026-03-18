@@ -1,6 +1,7 @@
 .ipynb_checkpoints
 .idea/
 chap2_linear_regression/
+chap2/
 */mnist/
 */MNIST_data/
 *.zip
