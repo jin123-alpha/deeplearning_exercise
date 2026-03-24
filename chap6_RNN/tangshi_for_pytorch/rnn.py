@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 import numpy as np
@@ -45,14 +44,14 @@ class RNN_model(nn.Module):
         # here you need to define the "self.rnn_lstm"  the input size is "embedding_dim" and the output size is "lstm_hidden_dim"
         # the lstm should have two layers, and the  input and output tensors are provided as (batch, seq, feature)
         # ???
-
+        self.rnn_lstm = nn.LSTM(input_size=embedding_dim, hidden_size=lstm_hidden_dim, num_layers=2, batch_first=True)
 
 
         ##########################################
         self.fc = nn.Linear(lstm_hidden_dim, vocab_len )
         self.apply(weights_init) # call the weights initial function.
 
-        self.softmax = nn.LogSoftmax() # the activation function.
+        self.softmax = nn.LogSoftmax(dim=1) # the activation function.
         # self.tanh = nn.Tanh()
     def forward(self,sentence,is_test = False):
         batch_input = self.word_embedding_lookup(sentence).view(1,-1,self.word_embedding_dim)
@@ -62,14 +61,14 @@ class RNN_model(nn.Module):
         # the hidden output should be named as output, the initial hidden state and cell state set to zero.
         # ???
 
-
+        output = self.rnn_lstm(batch_input)[0]
 
 
         ################################################
         out = output.contiguous().view(-1,self.lstm_dim)
 
-        out =  F.relu(self.fc(out))
-
+        # Use raw linear logits for language modeling, then apply log-softmax for NLLLoss.
+        out = self.fc(out)
         out = self.softmax(out)
 
         if is_test:
